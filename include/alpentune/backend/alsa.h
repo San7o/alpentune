@@ -2,7 +2,7 @@
  * MIT License
  *
  * Copyright (c) 2024 Giovanni Santini
- *
+
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -24,20 +24,29 @@
  *
  */
 
-#include <alpentune/alpentune.h>
-#include <alsa/asoundlib.h>
+#ifndef _AT_BACKEND_ALSA_H
+#define _AT_BACKEND_ALSA_H
 
+#include <alsa/asoundlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-int nth_fibonacci(int n)
-{
-    int a = 0, b = 1, c;
-    for (int i = 0; i < n; i++)
-    {
-        c = a + b;
-        a = b;
-        b = c;
-    }
-    return a;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern snd_pcm_t *playback_handle;
+extern short audiop_buf[4096]; // circular buffer
+
+int
+playback_callback (snd_pcm_t *handle, short *buf, snd_pcm_sframes_t nframes);
+
+void setup_handle(snd_pcm_t *handle, char* device_name);
+void send_data(snd_pcm_t *handle, short *buf, snd_pcm_sframes_t nframes);
+void close_handle(snd_pcm_t *handle);
+ 
+#ifdef __cplusplus
 }
+#endif
+
+#endif // _AT_BACKEND_ALSA_H

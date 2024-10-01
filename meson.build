@@ -37,10 +37,23 @@ base_sources = files(
   'src/alpentune.c'
 )
 
+at_dependencies = []
+
 if get_option('AT_BUILD_OPTIMIZED_AGGRESSIVE')
   add_project_arguments('-O3', '-ffast-math', '-march=native', language: 'cpp')
 elif get_option('AT_BUILD_OPTIMIZED')
   add_project_arguments('-O3', language: 'cpp')
+endif
+if get_option('AT_BACKEND_ALSA')
+  base_sources += ['src/backend/alsa.c']
+  at_dependencies += [
+    dependency('alsa', required : true)
+  ]
+endif
+if get_option('AT_BUILD_TESTS')
+  at_dependencies += [
+    valfuzz_dep
+  ]
 endif
 
 if get_option('AT_BUILD_SHARED')
@@ -49,9 +62,7 @@ if get_option('AT_BUILD_SHARED')
     include_directories: [
       'include',
     ],
-    dependencies: [
-      valfuzz_dep
-    ],
+    dependencies: at_dependencies,
   )
 endif
 if get_option('AT_BUILD_STATIC')
@@ -60,9 +71,7 @@ if get_option('AT_BUILD_STATIC')
     include_directories: [
       'include',
     ],
-    dependencies: [
-      valfuzz_dep
-    ],
+    dependencies: at_dependencies,
   )
 endif
 if get_option('AT_BUILD_TESTS')
@@ -71,7 +80,7 @@ if get_option('AT_BUILD_TESTS')
     'fuzz/alpentune_fuzz.cpp',
     'benchmarks/alpentune_benchmark.cpp'
   )
-  executable('tests',
+  exe = executable('tests',
     sources: [
       test_sources,
       base_sources
@@ -79,8 +88,6 @@ if get_option('AT_BUILD_TESTS')
     include_directories: [
       'include',
     ],
-    dependencies: [
-      valfuzz_dep
-    ],
+    dependencies: at_dependencies,
   )
 endif

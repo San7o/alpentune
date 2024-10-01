@@ -41,6 +41,8 @@
             libz.dev                # compression
             llvmPackages.libcxxClang
             stdenv.cc.cc.lib
+            alsaLib.dev
+            pkg-config
 
             # need those for numpy
             glib
@@ -57,6 +59,7 @@
 
           LD_LIBRARY_PATH="${pkgsFor.${system}.libz.dev}:${pkgsFor.${system}.stdenv.cc.cc.lib}/lib";
           CMAKE_CXX_COMPILER="${pkgsFor.${system}.gcc14}/bin/:${pkgsFor.${system}.clang_18}/bin/";
+          PKG_CONFIG_PATH="${pkgsFor.${system}.alsaLib.dev}/lib";
         };
     });
   };

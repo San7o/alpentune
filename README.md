@@ -2,7 +2,7 @@
 
 Alpentune is a C audio library, originally developed for [Brenta Engine](https://github.com/San7o/Brenta-Engine).
 
-The library is currently early in developmenet.
+Currently only ALSA backend is in developement.
 
 ## Building
 

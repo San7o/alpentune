@@ -12,7 +12,10 @@ set(CMAKE_USE_WIN32_THREADS_INIT 0)
 set(CMAKE_USE_PTHREADS_INIT 1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-set(AT_SOURCES src/alpentune.c)
+set(AT_SOURCES
+        src/alpentune.c
+        src/backend/alsa.c
+)
 set(AT_HEADERS include)
 set(AT_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
 set(AT_TEST_SOURCES
@@ -29,6 +32,7 @@ option(AT_BUILD_SHARED "Build shared library" ON)
 option(AT_BUILD_STATIC "Build static library" OFF)
 option(AT_BUILD_OPTIMIZED "Build optimized" OFF)
 option(AT_BUILD_OPTIMIZED_AGGRESSIVE "Build with maximum optimization" OFF)
+option(AT_BACKEND_ALSA "Build with ALSA backend" ON)
 
 set(ENV{CPM_SOURCE_CACHE} ${CMAKE_CURRENT_SOURCE_DIR}/deps)
 include(cmake/CPM.cmake) # <3
@@ -54,17 +58,23 @@ if(AT_USE_CLANG)
     list(APPEND AT_COMPILE_OPTIONS -std=c++23 -fexperimental-library)
     list(APPEND AT_LINK_LIBRARIES -fexperimental-library)
 endif()
+if (AT_BACKEND_ALSA)
+    list(APPEND AT_SOURCES src/backend/alsa.c)
+    list(APPEND AT_LINK_LIBRARIES asound)
+endif()
 
 if(AT_BUILD_SHARED)
     add_library(alpentune_shared SHARED ${AT_SOURCES})
     target_include_directories(alpentune_shared PRIVATE ${AT_HEADERS})
     target_compile_options(alpentune_shared PRIVATE ${AT_COMPILE_OPTIONS})
+    target_link_libraries(alpentune_shared PRIVATE ${AT_LINK_LIBRARIES})
 endif()
 
 if(AT_BUILD_STATIC)
     add_library(alpentune_static STATIC ${AT_SOURCES})
     target_include_directories(alpentune_static PRIVATE ${AT_HEADERS})
     target_compile_options(alpentune_static PRIVATE ${AT_COMPILE_OPTIONS})
+    target_link_libraries(alpentune_static PRIVATE ${AT_LINK_LIBRARIES})
 endif()
 
 if(AT_BUILD_TESTS AND valfuzz_ADDED)
@@ -72,4 +82,8 @@ if(AT_BUILD_TESTS AND valfuzz_ADDED)
     target_include_directories(tests PRIVATE ${AT_HEADERS} ${AT_TEST_HEADERS})
     target_compile_options(tests PRIVATE ${AT_COMPILE_OPTIONS})
     set_target_properties(tests PROPERTIES INTERFACE_INCLUDE_DIRECTORIES build/libalpentune_shared.so)
+    target_link_libraries(tests PRIVATE ${AT_LINK_LIBRARIES})
+
+    add_executable(playback_test tests/playback_test.c)
+    target_link_libraries(playback_test PRIVATE asound)
 endif()
